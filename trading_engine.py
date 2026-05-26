@@ -1,5 +1,5 @@
 # =============================================================================
-# trading_engine.py – Quant Terminal v11 PRO (PostgreSQL, Env Config)
+# trading_engine.py – Quant Terminal v11 PRO (PostgreSQL, Bots Slowed)
 # Run with: uvicorn trading_engine:app --reload --port 8000
 # =============================================================================
 
@@ -217,7 +217,8 @@ async def single_bot_loop(bot_name: str, product_name: str, initial_delay: float
             await run_bot_cycle(bot_name, product_name)
         except Exception as e:
             print(f"[{bot_name} ERROR] {e}")
-        await asyncio.sleep(random.uniform(0.5, 1.5))
+        # 🐢 Speed fix: bots ab har 3–5 second mein ek trade karenge (pehle 0.5–1.5 tha)
+        await asyncio.sleep(random.uniform(3.0, 5.0))
 
 async def run_bot_cycle(bot_name: str, product_name: str):
     db = SessionLocal()
