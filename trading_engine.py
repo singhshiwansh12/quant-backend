@@ -24,7 +24,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 300
 pwd_context   = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-engine       = create_engine("sqlite:///./trading_live.db", connect_args={"check_same_thread": False})
+# ── ENHANCED DATABASE CONNECTION ─────────────────────────────────────────────
+engine = create_engine(
+    "sqlite:///./trading_live.db",
+    connect_args={"check_same_thread": False, "timeout": 15},
+    pool_size=50,
+    max_overflow=100
+)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base         = declarative_base()
 
