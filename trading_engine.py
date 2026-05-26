@@ -1,9 +1,9 @@
 # =============================================================================
-# trading_engine.py – Quant Terminal v11 PRO
+# trading_engine.py – Quant Terminal v11 PRO (PostgreSQL, Env Config)
 # Run with: uvicorn trading_engine:app --reload --port 8000
 # =============================================================================
 
-import json, heapq, random, asyncio
+import json, heapq, random, asyncio, os
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -17,19 +17,24 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 
-SECRET_KEY = "super_secret_quant_engine_v11"
+# ── SECURITY (env variable) ─────────────────────────────────────────────────
+SECRET_KEY = os.getenv("SECRET_KEY", "super_secret_quant_engine_v11")
 ALGORITHM  = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 300
 
 pwd_context   = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-# ── ENHANCED DATABASE CONNECTION ─────────────────────────────────────────────
+# ── DATABASE (PostgreSQL) ────────────────────────────────────────────────────
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://user:password@host:port/database"  # ⬅️ YAHAN APNA URL DAALO
+)
+
 engine = create_engine(
-    "sqlite:///./trading_live.db",
-    connect_args={"check_same_thread": False, "timeout": 15},
-    pool_size=50,
-    max_overflow=100
+    DATABASE_URL,
+    pool_size=10,
+    max_overflow=20
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -71,6 +76,7 @@ class DBTrade(Base):
     seller_id = Column(Integer, ForeignKey("users.id"))
     timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
+# Tables create ho jayenge agar pehle se nahi hain
 Base.metadata.create_all(bind=engine)
 
 # ── WEBSOCKET MANAGER ────────────────────────────────────────────────────────
